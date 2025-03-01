@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/sd-scripts/models
 
 # next.js
 /.next/
@@ -39,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated images
+public/generated/*
+!public/generated/.gitkeep
