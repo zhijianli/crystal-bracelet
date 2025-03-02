@@ -1,13 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+
+// MBTI提示词映射
+const mbtiPrompts = {
+  // 分析家群体 (NT)
+  'INTJ': 'a single elegant round crystal bracelet with perfectly circular shape, deep blue sapphire and clear quartz beads evenly spaced on pure white background, isolated product photography, white seamless backdrop, studio lighting, professional product photography, centered composition, high resolution, 8k',
+  'INTP': 'a single geometric round crystal bracelet forming a perfect circle, labradorite and clear quartz beads arranged symmetrically on white backdrop, professional jewelry photography, sharp details, centered composition, 8k',
+  'ENTJ': 'a single powerful circular crystal bracelet with uniform round shape, black tourmaline and citrine beads in perfect alignment on pure white background, luxury product photography, dramatic lighting, centered, 8k uhd',
+  'ENTP': 'a single innovative round crystal bracelet with circular formation, rainbow fluorite and aquamarine beads in harmonious spacing on white background, creative product photography, dynamic lighting, centered, 8k',
+
+  // 外交家群体 (NF)
+  'INFJ': 'a single ethereal circular crystal bracelet with graceful round form, amethyst and moonstone beads in perfect circular arrangement on clean white background, minimalist product photography, soft studio lighting, centered, 8k uhd',
+  'INFP': 'a single dreamy crystal bracelet with rose quartz and opal on white background, artistic product photography, gentle lighting, centered, 8k',
+  'ENFJ': 'a single harmonious crystal bracelet with morganite and pearl on pure white background, elegant product photography, warm lighting, centered, 8k uhd',
+  'ENFP': 'a single vibrant crystal bracelet with citrine and rose quartz on white background, commercial product photography, perfect lighting, centered, ultra detailed, 8k',
+
+  // 守卫者群体 (SJ)
+  'ISTJ': 'a single structured crystal bracelet with smoky quartz and tiger eye on white backdrop, technical product photography, precise lighting, centered, 8k',
+  'ISFJ': 'a single nurturing crystal bracelet with pink tourmaline and amazonite on white background, soft product photography, balanced lighting, centered, 8k uhd',
+  'ESTJ': 'a single commanding crystal bracelet with red jasper and hematite on pure white background, professional product photography, strong lighting, centered, 8k',
+  'ESFJ': 'a single supportive crystal bracelet with green aventurine and rose quartz on white background, warm product photography, inviting lighting, centered, 8k',
+
+  // 探险家群体 (SP)
+  'ISTP': 'a single precise crystal bracelet with obsidian and sodalite on white backdrop, technical product photography, crisp lighting, centered, 8k uhd',
+  'ISFP': 'a single artistic crystal bracelet with lapis lazuli and moonstone on white background, aesthetic product photography, soft lighting, centered, 8k',
+  'ESTP': 'a single dynamic crystal bracelet with carnelian and sunstone on pure white background, bold product photography, energetic lighting, centered, 8k',
+  'ESFP': 'a single expressive crystal bracelet with amber and turquoise on white background, vibrant product photography, playful lighting, centered, ultra detailed, 8k'
+};
+
+// 添加默认负面提示词
+const defaultNegativePrompt = "multiple bracelets, busy background, blurry, low quality, low resolution, deformed, dark background, black background, gray background, colored background, textured background, shadows";
 
 export function MBTIForm() {
   const [mbti, setMbti] = useState('');
   const [generatedImage, setGeneratedImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [negativePrompt, setNegativePrompt] = useState(defaultNegativePrompt);
+
+  // 当MBTI选择改变时，更新提示词
+  useEffect(() => {
+    if (mbti) {
+      setCustomPrompt(mbtiPrompts[mbti as keyof typeof mbtiPrompts]);
+    }
+  }, [mbti]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,28 +54,25 @@ export function MBTIForm() {
     setShowResult(false);
 
     try {
-      // 这里需要连接到您的AI图片生成API
       const response = await fetch('/api/generate-bracelet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ mbti }),
+        body: JSON.stringify({ 
+          mbti,
+          customPrompt,
+          negativePrompt
+        }),
       });
 
       const data = await response.json();
       setGeneratedImage(data.imageUrl);
-      
-      // 等待生成动画完成后显示结果
-      setTimeout(() => {
-        setShowResult(true);
-      }, 2000); // 2秒后显示结果
+      setTimeout(() => setShowResult(true), 2000);
     } catch (error) {
       console.error('生成图片时出错:', error);
     } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 2000); // 保持加载动画2秒
+      setTimeout(() => setIsLoading(false), 2000);
     }
   };
 
@@ -113,6 +149,34 @@ export function MBTIForm() {
               alt="生成的水晶手串"
               fill
               className="rounded-2xl object-cover"
+            />
+          </div>
+        </div>
+      )}
+
+      {mbti && (
+        <div className="fixed bottom-4 right-4 w-96 backdrop-blur-xl bg-white/[0.01] p-4 rounded-2xl border border-white/[0.03] shadow-2xl space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-purple-200/90">
+              自定义提示词
+            </label>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              className="w-full h-32 p-3 border border-white/10 rounded-xl bg-white/[0.02] text-purple-200/90 backdrop-blur-xl focus:ring-2 focus:ring-purple-500/30 focus:border-transparent transition-all text-sm"
+              placeholder="编辑提示词以自定义生成效果..."
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2 text-purple-200/90">
+              负面提示词
+            </label>
+            <textarea
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              className="w-full h-24 p-3 border border-white/10 rounded-xl bg-white/[0.02] text-purple-200/90 backdrop-blur-xl focus:ring-2 focus:ring-purple-500/30 focus:border-transparent transition-all text-sm"
+              placeholder="编辑负面提示词..."
             />
           </div>
         </div>

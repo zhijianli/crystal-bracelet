@@ -27,18 +27,24 @@ class ImageGenerator:
         
         logger.info("模型初始化完成")
 
-    def generate(self, prompt: str, output_dir: str) -> str:
+    def generate(self, prompt: str, output_dir: str, negative_prompt: str = None) -> str:
         logger.info(f"生成图片，提示词: {prompt}")
+        logger.info(f"负面提示词: {negative_prompt}")
         
-        # 生成图片
-        image = self.pipe(prompt).images[0]
+        # 优化参数设置
+        image = self.pipe(
+            prompt=prompt,
+            num_inference_steps=40,      # 40步是细节和速度的良好平衡
+            guidance_scale=7.5,          # 7.5是创意性和准确度的平衡点
+            width=768,                   # 保持768x768的正方形比例适合手串展示
+            height=768,
+            negative_prompt=negative_prompt,
+        ).images[0]
         
-        # 保存图片
-        os.makedirs(output_dir, exist_ok=True)
+        # 保存为高质量PNG
         output_path = os.path.join(output_dir, f"generated_{hash(prompt)}.png")
-        image.save(output_path)
+        image.save(output_path, "PNG", quality=100)
         
-        logger.info(f"图片已保存到: {output_path}")
         return output_path
 
 # 全局的生成器实例
@@ -50,11 +56,12 @@ def generate_image():
         data = request.get_json()
         prompt = data.get('prompt')
         output_dir = data.get('output_dir')
+        negative_prompt = data.get('negative_prompt')
 
         if not prompt or not output_dir:
             return jsonify({'error': '缺少必要参数'}), 400
 
-        output_path = generator.generate(prompt, output_dir)
+        output_path = generator.generate(prompt, output_dir, negative_prompt)
         return jsonify({'output_path': output_path})
 
     except Exception as e:
