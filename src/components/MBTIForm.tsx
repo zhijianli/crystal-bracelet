@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // MBTI提示词映射
 const mbtiPrompts = {
@@ -33,6 +34,45 @@ const mbtiPrompts = {
 // 添加默认负面提示词
 const defaultNegativePrompt = "multiple bracelets, busy background, blurry, low quality, low resolution, deformed, dark background, black background, gray background, colored background, textured background, shadows";
 
+// 默认推荐商品（当没有特定MBTI类型时使用）
+const defaultProducts = [
+  { name: '七脉轮疗愈水晶手链', image: '/111.jpg', url: 'https://www.amazon.com/-/zh_TW/Plaza-%E8%84%88%E8%BC%AA%E6%89%8B%E9%8D%8A-%E8%84%88%E8%BC%AA%E7%99%82%E7%99%92%E6%B0%B4%E6%99%B6%E6%89%8B%E9%8D%8A-%E6%94%BE%E9%AC%86%E7%84%A6%E6%85%AE%E6%89%8B%E9%90%B2-%E7%94%B7%E5%A5%B3%E9%80%9A%E7%94%A8/dp/B07PDPKD48' },
+  { name: '招财猫黑曜石手链', image: '/222.jpg', url: 'https://www.amazon.com/-/zh_TW/%E9%87%91%E9%8C%A2%E5%90%B8%E5%BC%95%E5%8A%9B%E8%B2%93%E6%89%8B%E9%8D%8A-Prosperity-%E8%B1%90%E7%9B%9B%E5%AF%B6%E7%9F%B3%E4%B8%B2%E7%8F%A0%E6%89%8B%E9%8D%8A-%E4%BC%81%E6%A5%AD%E5%AE%B6%E5%95%86%E5%8B%99%E9%81%8B%E6%B0%A3%E4%B8%B2%E7%8F%A0%E6%89%8B%E9%8D%8A-%E7%B2%BE%E7%A5%9E%E5%BF%83%E6%83%85%E8%83%BD%E9%87%8F%E5%8F%AF%E6%84%9B%E4%BF%9D%E8%AD%B7%E5%BD%88%E5%8A%9B%E6%89%8B%E9%8D%8A/dp/B0CDXWS2TN' },
+  { name: '紫水晶心形吊坠手链', image: '/333.jpg', url: 'https://www.amazon.com/-/zh_TW/TUMBEELLUWA-%E7%99%82%E7%99%92%E7%9F%B3%E6%89%8B%E9%8D%8A-%E5%85%AC%E9%87%90%E4%B8%B2%E7%8F%A0-%E8%84%88%E8%BC%AA%E6%B0%B4%E6%99%B6-%E7%B4%AB%E6%B0%B4%E6%99%B6%E6%B0%B4%E6%99%B6/dp/B07RK1G3S9' },
+];
+
+// 为所有MBTI类型使用相同的图片
+const allProducts = {
+  'INTJ': [
+    { name: '蓝宝石水晶手链', image: '/111.jpg', url: 'https://www.amazon.com/dp/B0XXXXX1' },
+    { name: '清透石英手串', image: '/222.jpg', url: 'https://www.amazon.com/dp/B0XXXXX2' },
+    { name: '深蓝水晶吊坠', image: '/333.jpg', url: 'https://www.amazon.com/dp/B0XXXXX3' },
+  ],
+  'INTP': [
+    { name: '拉长石几何手链', image: '/111.jpg', url: 'https://www.amazon.com/dp/B0XXXXX4' },
+    { name: '水晶几何项链', image: '/222.jpg', url: 'https://www.amazon.com/dp/B0XXXXX5' },
+    { name: '多面切割水晶耳环', image: '/333.jpg', url: 'https://www.amazon.com/dp/B0XXXXX6' },
+  ],
+  // 其他MBTI类型也使用这三张图片
+};
+
+// 为所有MBTI类型创建推荐商品
+const recommendedProducts = Object.fromEntries(
+  [
+    'INTJ', 'INTP', 'ENTJ', 'ENTP',
+    'INFJ', 'INFP', 'ENFJ', 'ENFP',
+    'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+    'ISTP', 'ISFP', 'ESTP', 'ESFP'
+  ].map(type => [
+    type,
+    [
+      { name: `${type}专属七脉轮手链`, image: '/111.jpg', url: 'https://www.amazon.com/-/zh_TW/Plaza-%E8%84%88%E8%BC%AA%E6%89%8B%E9%8D%8A-%E8%84%88%E8%BC%AA%E7%99%82%E7%99%92%E6%B0%B4%E6%99%B6%E6%89%8B%E9%8D%8A-%E6%94%BE%E9%AC%86%E7%84%A6%E6%85%AE%E6%89%8B%E9%90%B2-%E7%94%B7%E5%A5%B3%E9%80%9A%E7%94%A8/dp/B07PDPKD48' },
+      { name: `${type}招财猫黑曜石手链`, image: '/222.jpg', url: 'https://www.amazon.com/-/zh_TW/%E9%87%91%E9%8C%A2%E5%90%B8%E5%BC%95%E5%8A%9B%E8%B2%93%E6%89%8B%E9%8D%8A-Prosperity-%E8%B1%90%E7%9B%9B%E5%AF%B6%E7%9F%B3%E4%B8%B2%E7%8F%A0%E6%89%8B%E9%8D%8A-%E4%BC%81%E6%A5%AD%E5%AE%B6%E5%95%86%E5%8B%99%E9%81%8B%E6%B0%A3%E4%B8%B2%E7%8F%A0%E6%89%8B%E9%8D%8A-%E7%B2%BE%E7%A5%9E%E5%BF%83%E6%83%85%E8%83%BD%E9%87%8F%E5%8F%AF%E6%84%9B%E4%BF%9D%E8%AD%B7%E5%BD%88%E5%8A%9B%E6%89%8B%E9%8D%8A/dp/B0CDXWS2TN' },
+      { name: `${type}紫水晶心形手链`, image: '/333.jpg', url: 'https://www.amazon.com/-/zh_TW/TUMBEELLUWA-%E7%99%82%E7%99%92%E7%9F%B3%E6%89%8B%E9%8D%8A-%E5%85%AC%E9%87%90%E4%B8%B2%E7%8F%A0-%E8%84%88%E8%BC%AA%E6%B0%B4%E6%99%B6-%E7%B4%AB%E6%B0%B4%E6%99%B6%E6%B0%B4%E6%99%B6/dp/B07RK1G3S9' },
+    ]
+  ])
+);
+
 export function MBTIForm() {
   const [mbti, setMbti] = useState('');
   const [generatedImage, setGeneratedImage] = useState('');
@@ -40,11 +80,13 @@ export function MBTIForm() {
   const [showResult, setShowResult] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState(defaultNegativePrompt);
+  const [products, setProducts] = useState(defaultProducts);
 
-  // 当MBTI选择改变时，更新提示词
+  // 当MBTI选择改变时，更新提示词和推荐商品
   useEffect(() => {
     if (mbti) {
       setCustomPrompt(mbtiPrompts[mbti as keyof typeof mbtiPrompts]);
+      setProducts(recommendedProducts[mbti as keyof typeof recommendedProducts] || defaultProducts);
     }
   }, [mbti]);
 
@@ -142,7 +184,7 @@ export function MBTIForm() {
           <h3 className="text-xl font-medium mb-6 text-center text-purple-200/90">
             您的专属魔法水晶
           </h3>
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-2xl mb-8">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10" />
             <Image
               src={generatedImage}
@@ -150,6 +192,37 @@ export function MBTIForm() {
               fill
               className="rounded-2xl object-cover"
             />
+          </div>
+          
+          {/* 推荐商品部分 */}
+          <div className="mt-8">
+            <h4 className="text-lg font-medium mb-4 text-center text-purple-200/90">
+              为您推荐的魔法水晶商品
+            </h4>
+            <div className="grid grid-cols-3 gap-4">
+              {products.map((product, index) => (
+                <Link 
+                  href={product.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  key={index}
+                  className="group"
+                >
+                  <div className="relative aspect-square rounded-xl overflow-hidden border border-white/10 transition-all group-hover:border-purple-400/30 group-hover:shadow-lg group-hover:shadow-purple-500/10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5" />
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                  <p className="mt-2 text-sm text-center text-purple-200/80 group-hover:text-purple-200">
+                    {product.name}
+                  </p>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}
