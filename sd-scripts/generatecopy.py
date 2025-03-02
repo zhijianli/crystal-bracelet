@@ -70,7 +70,7 @@ class ImageGenerator:
         image = self.pipe(
             prompt=prompt,
             num_inference_steps=40,      # 40步是细节和速度的良好平衡
-            guidance_scale=7.5,          # 7.5是创意性和准确度的平衡点
+            guidance_scale=9.0,          # 提高到9.0以增加准确度，减少创意性
             width=768,                   # 保持768x768的正方形比例适合手串展示
             height=768,
             negative_prompt=negative_prompt,
