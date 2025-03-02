@@ -7,6 +7,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        magic: ['var(--font-magic)'],
+      },
       animation: {
         'float': 'float 20s ease-in-out infinite',
         'float-slow': 'float 25s ease-in-out infinite',

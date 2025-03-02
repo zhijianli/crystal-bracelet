@@ -77,12 +77,12 @@ export function MBTIForm() {
   };
 
   return (
-    <div className="w-full max-w-xl relative">
+    <div className="w-full max-w-xl relative -mt-5 font-[SF-Pro-Display,-apple-system,system-ui,sans-serif]">
       {/* 背景光晕 */}
       <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/10 via-blue-500/5 to-indigo-500/10 rounded-[2rem] blur-2xl -z-10" />
       
       {/* 表单容器 */}
-      <form onSubmit={handleSubmit} className="backdrop-blur-lg bg-white/[0.005] p-8 sm:p-10 rounded-3xl border border-white/[0.03] shadow-2xl space-y-8 relative">
+      <form onSubmit={handleSubmit} className="backdrop-blur-md bg-white/[0.002] p-8 sm:p-10 rounded-3xl border border-white/[0.02] shadow-2xl space-y-8 relative">
         <div>
           <label htmlFor="mbti" className="block text-xl font-medium mb-4 text-purple-200/90">
             探索您的能量类型
